@@ -1,0 +1,32 @@
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+
+  font-family: "Hachi Maru Pop", cursive;
+}
+h1 {
+  text-align: center;
+  border: 1px;
+  border-radius: 5px;
+  width: 100%;
+  margin-top: 10vh;
+  margin-bottom: 10vh;
+}
+h3 {
+  background-color: whitesmoke;
+  text-align: center;
+  border: 1px solid;
+  border-radius: 5px;
+  margin: 5vh;
+  color: black;
+}
+img {
+  margin-top: 2vh;
+  border-radius: 5px;
+}
+
+#sticky-footer {
+  margin-top: 10vh;
+}
