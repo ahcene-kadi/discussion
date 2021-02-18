@@ -1,9 +1,8 @@
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   margin: 0;
-
   font-family: "Hachi Maru Pop", cursive;
 }
 h1 {
@@ -28,5 +27,10 @@ img {
 }
 
 #sticky-footer {
-  margin-top: 10vh;
+  margin-top: auto;
+}
+
+.green-border-focus .form-control:focus {
+  border: 1px solid #8bc34a;
+  box-shadow: 0 0 0 0.2rem rgba(139, 195, 74, 0.25);
 }

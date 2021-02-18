@@ -2,180 +2,96 @@
 session_start();
 
 
-if (!empty($_POST['deco'])) {
-	unset($_SESSION['login']);
-	unset($_SESSION['password']);
-	unset($_SESSION['profil']);
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: connexion.php");
+    exit;
 }
-$db = mysqli_connect("localhost", "root", "", "discussion");
-$query = "SELECT login, date, id_utilisateur, message FROM `utilisateurs` ,`messages` WHERE utilisateurs.id = id_utilisateur ORDER BY `messages`.`id` ASC";
-$result = mysqli_query($db, $query);
-$query1 = "SELECT id, message FROM `messages`";
-$result1 = mysqli_query($db, $query1);
-
-
+require_once "config.php";
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-	<link rel="stylesheet" type="text/css" href="index.css" />
-	<title>Discussion</title>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
-	<link rel="stylesheet" href="style.css">
-	<link rel="preconnect" href="https://fonts.gstatic.com">
-	<link href="https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap" rel="stylesheet">
-	<title>Discussion</title>
+    <meta charset="UTF-8">
+    <title>Discussion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap" rel="stylesheet">
 </head>
 
-<body class="discussion">
-	<?php
-	include 'header.php';
-	?>
-	<?php
-	if ((isset($_SESSION['login'])) && (isset($_SESSION['password']))) {
+<body>
+    <?php
+    include 'header.php';
+    ?>
+    <main class="container">
+        <div class="page-header">
+            <h1>Salut, <b><?php echo htmlspecialchars($_SESSION["login"]); ?></b> Bienvenue sur discussion.</h1>
+        </div>
+        <div>
+            <form method="post" action="">
+                <div class="form-group green-border-focus">
+                    <label for="exampleFormControlTextarea5">Ecrivez votre message ici</label>
+                    <textarea class="form-control" id="exampleFormControlTextarea5" rows="3" type="text" name="message" placeholder="Message"></textarea>
+                </div>
+                <input type="submit" class="btn btn-success" name="envoyer" value="envoyer" />
+                <?php
+                if (isset($error_msg)) {
+                    echo $error_msg;
+                }
+                ?>
+            </form>
+        </div>
+        <?php
+        if (isset($_POST['envoyer'])) {
+            $message = $_POST['message'];
+            $id = $_SESSION['id'];
+            $date = date('Y.m.d H:i:s');
 
-	?>
+            if (!empty($_POST['message'])) {
+                $connexion = new PDO("mysql:host=localhost;dbname=discussion", 'root', '');
+                $connexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+                $requete = $connexion->prepare(
+                    "INSERT INTO messages (message, id_utilisateur, date)
+                                            VALUES(:mess, :id_utilisateur, :date)"
+                );
 
+                $requete->bindParam(':mess', $message);
+                $requete->bindParam(':id_utilisateur', $id);
+                $requete->bindParam(':date', $date);
 
+                $requete->execute();
+            } else {
+                $error_msg = '<p class="error">Veuillez écrire votre message</p>';
+            }
+        }
+        ?>
+        <section>
 
+            <?php
+            $requete = $pdo->prepare(
+                "SELECT login,message,date 
+                                                FROM utilisateurs
+                                                    INNER JOIN messages
+                                                        ON utilisateurs.id = messages.id_utilisateur"
+            );
 
+            $requete->execute();
 
-	<?php
-	} else {
-	?>
-
-
-
-
-	<?php
-	}
-	if (!empty($_POST['deco'])) {
-		unset($_SESSION['login']);
-		unset($_SESSION['password']);
-	}
-
-	?>
-
-	</header>
-
-	<article class="espacecommentaire">
-		<table>
-			<tr>
-				<td><strong>Utilisateur(s)</strong></td>
-				<td><strong>Messages</strong></td>
-			</tr>
-
-			<?php
-			while (($row = mysqli_fetch_array($result)) && ($row1 = mysqli_fetch_array($result1))) {
-			?>
-				<tr>
-					<td><?php echo "Posté par : ";
-						echo "<strong>" . $row['login'] . "</strong>";
-						echo " le ";
-						echo $row['date']; ?></td>
-					<td><?php echo $row['message']; ?></td>
-
-					<?php
-
-					if (isset($_SESSION['login'])) {
-						if (($_SESSION['login'] == $row['login']) || ($_SESSION['login'] == "admin")) {
-					?>
-							<td>
-								<form method="post">
-									<input type="submit" name="effacer" value="Supprimer">
-									<input type="hidden" name="moi" value="<?php echo $row1['id'] ?>">
-								</form>
-					<?php
-						}
-						if (isset($_POST['effacer'])) {
-							$message = $_POST['moi'];
-							$query2 = "DELETE FROM `messages` WHERE messages . id = '$message'";
-							$result2 = mysqli_query($db, $query2);
-							$_SESSION['delete'] = true;
-						}
-					}
-				}
-					?>
-							</td>
-				</tr>
-
-
-				<?php
-
-				if (!isset($_SESSION['login'])) {
-					header('Location: connexion.php');
-				}
-
-				$login = $_SESSION['login'];
-
-				$requeteid = "SELECT id FROM utilisateurs WHERE login='$login'";
-				$query = mysqli_query($db, $requeteid);
-				$id = mysqli_fetch_array($query);
+            $result = $requete->fetchAll();
 
 
 
-				?>
-
-
-
-				<div class="ajtcomm">
-					<h2>Ajoutez votre messages:</h2>
-
-					<form class="formulaire1" name="inscription" method="post" action="discussion.php">
-
-						Votre commentaire: <br><textarea name="message"></textarea></br>
-
-						<input type="submit" name="valider" value="OK" />
-					</form>
-					<?php
-
-					if (isset($_POST['valider'])) {
-
-
-						$message = $_POST['message'];
-						$id = $id['id'];
-						$time = "SELECT date FROM messages, utilisateurs WHERE id_utilisateur='$id' ORDER BY messages.id DESC ";
-						$req2 = mysqli_query($db, $time);
-						$req3 = mysqli_fetch_array($req2);
-						$req4 = mysqli_num_rows($req2);
-
-						if ($req4 > 0) {
-							date_default_timezone_set('Europe/Paris');
-							$date1 = date_create(date("Y-m-d H:i:s"));
-							$date2 = date_create($req3['date']);
-
-
-							if (date_timestamp_get($date1) - date_timestamp_get($date2) < 10) {
-
-								echo "Veuillez attendre au moins 10 secondes";
-							} else {
-								$requete = "INSERT INTO `messages` (`id`, `message`, `id_utilisateur`, `date`) VALUES (NULL, '$message', '$id', CURRENT_TIMESTAMP())";
-								mysqli_query($db, $requete);
-								header('location: discussion.php');
-							}
-						} else {
-							$requete = "INSERT INTO `messages` (`id`, `message`, `id_utilisateur`, `date`) VALUES (NULL, '$message', '$id', CURRENT_TIMESTAMP())";
-							mysqli_query($db, $requete);
-							header('location: discussion.php');
-						}
-					}
-
-					?>
-					<?php
-
-					mysqli_close($db);
-					?>
-		</table>
-	</article>
-
-
-
-	<?php
-
-
-
-	?>
+            for ($i = 0; isset($result[$i]); $i++) {
+                echo '</br><p class="message"> Envoyé par <b>' . $result[$i]['login'] . '</b> le <em>' . $result[$i]['date'] . '</em> ' . $result[$i]['message'] . '</p>';
+            }
+            ?>
+        </section>
+    </main>
+    <?php
+    include 'footer.php'
+    ?>
 </body>
 
 </html>

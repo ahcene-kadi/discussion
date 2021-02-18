@@ -17,7 +17,7 @@
             echo '<a class="nav-link" href="profil.php">Profil </a>';
             echo '</li>';
             echo '<li class="nav-item">';
-            echo '<a class="nav-link" href="welcome.php">Mini-chat </a>';
+            echo '<a class="nav-link" href="discussion.php">Mini-chat </a>';
             echo '</li></ul>';
 
             echo '<form action="logout.php" method="post">';
